@@ -24,3 +24,46 @@ export const isGameInPlayerCache = (gameId: string): boolean => {
 export const updatePlayerGamesInCache = (playerGames: PlayerGame[]) => {
   localStorage.setItem(playerGamesStoreName, JSON.stringify(playerGames));
 };
+
+const linearApiKeyStoreName = 'linearApiKey';
+
+export const getLinearApiKey = (): string | null => {
+  return localStorage.getItem(linearApiKeyStoreName);
+};
+
+export const setLinearApiKey = (apiKey: string) => {
+  localStorage.setItem(linearApiKeyStoreName, apiKey);
+};
+
+export const removeLinearApiKey = () => {
+  localStorage.removeItem(linearApiKeyStoreName);
+};
+
+// ── Linear issue queue (per game session) ──────────────────────────────────────
+
+const queueKey = (gameId: string) => `linearQueue_${gameId}`;
+const queueIdxKey = (gameId: string) => `linearQueueIdx_${gameId}`;
+
+export const getLinearIssueQueue = (gameId: string): unknown[] | null => {
+  const stored = localStorage.getItem(queueKey(gameId));
+  return stored ? JSON.parse(stored) : null;
+};
+
+export const setLinearIssueQueue = (gameId: string, issues: unknown[], index: number) => {
+  localStorage.setItem(queueKey(gameId), JSON.stringify(issues));
+  localStorage.setItem(queueIdxKey(gameId), String(index));
+};
+
+export const getLinearQueueIndex = (gameId: string): number => {
+  const stored = localStorage.getItem(queueIdxKey(gameId));
+  return stored !== null ? parseInt(stored, 10) : 0;
+};
+
+export const updateLinearQueueIndex = (gameId: string, index: number) => {
+  localStorage.setItem(queueIdxKey(gameId), String(index));
+};
+
+export const clearLinearIssueQueue = (gameId: string) => {
+  localStorage.removeItem(queueKey(gameId));
+  localStorage.removeItem(queueIdxKey(gameId));
+};

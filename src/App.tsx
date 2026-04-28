@@ -26,7 +26,7 @@ function App() {
         <Router>
           <Toolbar />
           <Switch>
-            <Route path='/game/:id' component={GamePage} />
+<Route path='/game/:id' component={GamePage} />
             <Route path='/delete-old-games' component={DeleteOldGames} />
             <Route path='/join/:id' component={JoinPage} />
             <Route path='/about-planning-poker' component={AboutPage} />

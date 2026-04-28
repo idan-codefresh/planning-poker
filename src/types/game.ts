@@ -23,6 +23,16 @@ export interface Game {
   createdAt: Date;
   updatedAt?: Date;
   timerProps?: TimerProps;
+  linearIssueId?: string;
+  linearIssueUrl?: string;
+  linearIssueIdentifier?: string;
+  linearIssueTitle?: string;
+  linearIssueDescription?: string;
+  linearIssueStateName?: string;
+  linearIssueStateColor?: string;
+  linearIssueAssigneeName?: string;
+  linearIssueAssigneeAvatar?: string;
+  linearIssueLabels?: Array<{ name: string; color: string }>;
 }
 
 export interface NewGame {
