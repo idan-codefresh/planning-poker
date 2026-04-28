@@ -1,0 +1,45 @@
+src/types/game.ts
+  cfa1e7f4491c0051 26-35
+src/components/Players/CardPicker/CardPicker.tsx
+  cfa1e7f4491c0051 13-14,17,32-35,39-46,54-62,69,74,77
+src/components/Linear/EstimationGuide.tsx
+  cfa1e7f4491c0051 1-89
+src/components/Poker/GameController/GameController.tsx
+  cfa1e7f4491c0051 5-6,12,26-33,40-42,47,49,67,74,77,84-100,103-117,120-122,124-128,135,138,141-185,189-191,193-194,201-203,206-216,219,223-225,238-239,245-280,282,293-295,297,305,311,313-315,322-326
+src/components/Linear/LinearIssuePicker.tsx
+  cfa1e7f4491c0051 1-674
+src/components/Linear/IssuePreviewPanel.tsx
+  cfa1e7f4491c0051 1-243
+src/service/linear.ts
+  cfa1e7f4491c0051 1-325
+src/components/Poker/GameArea/GameArea.tsx
+  cfa1e7f4491c0051 1-19,22-23,33,35-148,150-305,307-322
+src/App.tsx
+  cfa1e7f4491c0051 29
+.env.example
+  cfa1e7f4491c0051 8
+src/repository/localStorage.ts
+  cfa1e7f4491c0051 27-69
+src/components/Linear/IssueDetailCard.tsx
+  cfa1e7f4491c0051 1-202
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.20",
+  "base_commit_sha": "e22645b76a14d2f4cce6a3176cd023b55e02bbb8",
+  "prompts": {
+    "cfa1e7f4491c0051": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b25c81d7-7784-4363-8451-04a6114330bc",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Idan Arbel <idan.arbel@codefresh.io>",
+      "messages": [],
+      "total_additions": 3925,
+      "total_deletions": 1856,
+      "accepted_lines": 2384,
+      "overriden_lines": 0
+    }
+  }
+}
