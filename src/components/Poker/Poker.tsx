@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useHistory, useParams } from 'react-router-dom';
-import { ensureSignedIn } from '../../repository/firebase';
 import { streamGame, streamPlayers } from '../../service/games';
 import { getCurrentPlayerId } from '../../service/players';
 import { Game } from '../../types/game';
@@ -35,8 +34,6 @@ export const Poker = () => {
 
   useEffect(() => {
     let effectCleanup = true;
-
-    ensureSignedIn().catch((err) => console.warn('[auth] anonymous sign-in failed', err));
 
     if (effectCleanup) {
       const currentPlayerId = getCurrentPlayerId(id);

@@ -23,13 +23,10 @@ const db = firebase.firestore();
 
 export const auth = firebase.auth();
 
-/**
- * Signs the current browser session in anonymously so every user has a
- * Firebase-verified identity. This is required for Firestore security rules
- * that enforce `request.auth != null`.
- */
-export const ensureSignedIn = (): Promise<firebase.auth.UserCredential> =>
-  firebase.auth().signInAnonymously();
+export const signInWithEmailPassword = (email: string, password: string) =>
+  firebase.auth().signInWithEmailAndPassword(email, password);
+
+export const signOut = () => firebase.auth().signOut();
 db.settings({ experimentalAutoDetectLongPolling: true });
 // Use Firestore Emulator if the environment variable is set
 if (process.env.VITE_USE_FIRESTORE_EMULATOR === 'true') {
