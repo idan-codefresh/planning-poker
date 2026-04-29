@@ -87,6 +87,7 @@ interface LinearIssuePickerProps {
   onSelect: (issue: LinearIssue) => void;
   onQueueStart: (issues: LinearIssue[]) => void;
   onClose: () => void;
+  isMod?: boolean;
 }
 
 interface IssueListProps {
@@ -105,8 +106,9 @@ export const LinearIssuePicker: React.FC<LinearIssuePickerProps> = ({
   onSelect,
   onQueueStart,
   onClose,
+  isMod = false,
 }) => {
-  const [screen, setScreen] = useState<Screen>(getLinearApiKey() ? 'picker' : 'connect');
+  const [screen, setScreen] = useState<Screen>(getLinearApiKey() ? 'picker' : (isMod ? 'connect' : 'picker'));
   const [tab, setTab] = useState<Tab>('search');
   const [previewIssue, setPreviewIssue] = useState<LinearIssueDetail | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
@@ -155,7 +157,7 @@ export const LinearIssuePicker: React.FC<LinearIssuePickerProps> = ({
           </span>
         </div>
         <div className='flex items-center gap-3'>
-          {screen === 'picker' && (
+          {screen === 'picker' && isMod && (
             <button onClick={handleDisconnect} className='text-xs text-gray-400 hover:text-red-500 transition'>
               Disconnect
             </button>
@@ -166,9 +168,15 @@ export const LinearIssuePicker: React.FC<LinearIssuePickerProps> = ({
         </div>
       </div>
 
-      {screen === 'connect' ? (
+      {screen === 'connect' && isMod ? (
         <div className='p-5'>
           <ConnectForm onConnect={handleConnect} />
+        </div>
+      ) : screen === 'connect' ? (
+        <div className='flex flex-col items-center justify-center h-full gap-2 p-5'>
+          <p className='text-xs text-center' style={{ color: 'var(--lin-text-2)' }}>
+            Only the moderator can connect a Linear account.
+          </p>
         </div>
       ) : (
         <div className='flex flex-1 overflow-hidden min-h-0'>

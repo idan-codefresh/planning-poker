@@ -257,14 +257,16 @@ export const GameArea: React.FC<GameAreaProps> = ({ game, players, currentPlayer
             <div className='flex flex-col items-center justify-center h-full gap-3'>
               <LinearIcon className='h-9 w-9 text-gray-400 dark:text-gray-600' />
               <p className='text-xs font-medium' style={{ color: 'var(--lin-text-2)' }}>No issue selected</p>
-              <button
-                onClick={() => setShowLinearPicker((v) => !v)}
-                className='flex items-center gap-1.5 text-xs font-semibold text-white rounded-md px-4 py-2 transition'
-                style={{ background: 'var(--lin-accent)' }}
-              >
-                <LinearIcon className='h-3.5 w-3.5 brightness-0 invert' />
-                Browse issues
-              </button>
+              {isModerator(game.createdById, currentPlayerId, game.isAllowMembersToManageSession) && (
+                <button
+                  onClick={() => setShowLinearPicker((v) => !v)}
+                  className='flex items-center gap-1.5 text-xs font-semibold text-white rounded-md px-4 py-2 transition'
+                  style={{ background: 'var(--lin-accent)' }}
+                >
+                  <LinearIcon className='h-3.5 w-3.5 brightness-0 invert' />
+                  Browse issues
+                </button>
+              )}
             </div>
           )}
 
@@ -275,6 +277,7 @@ export const GameArea: React.FC<GameAreaProps> = ({ game, players, currentPlayer
               onSelect={handleLinearIssueSelect}
               onQueueStart={handleQueueStart}
               onClose={() => setShowLinearPicker(false)}
+              isMod={isModerator(game.createdById, currentPlayerId, game.isAllowMembersToManageSession)}
             />
           )}
         </div>
