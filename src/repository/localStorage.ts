@@ -27,16 +27,18 @@ export const updatePlayerGamesInCache = (playerGames: PlayerGame[]) => {
 
 const linearApiKeyStoreName = 'linearApiKey';
 
+// Stored in sessionStorage so it is cleared when the tab/browser is closed
+// and never persists across sessions.
 export const getLinearApiKey = (): string | null => {
-  return localStorage.getItem(linearApiKeyStoreName);
+  return sessionStorage.getItem(linearApiKeyStoreName);
 };
 
 export const setLinearApiKey = (apiKey: string) => {
-  localStorage.setItem(linearApiKeyStoreName, apiKey);
+  sessionStorage.setItem(linearApiKeyStoreName, apiKey);
 };
 
 export const removeLinearApiKey = () => {
-  localStorage.removeItem(linearApiKeyStoreName);
+  sessionStorage.removeItem(linearApiKeyStoreName);
 };
 
 // ── Linear issue queue (per game session) ──────────────────────────────────────

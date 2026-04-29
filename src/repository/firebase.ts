@@ -1,5 +1,6 @@
 import 'firebase/analytics';
 import firebase from 'firebase/app';
+import 'firebase/auth';
 import 'firebase/firestore';
 import { Game } from '../types/game';
 import { Player } from '../types/player';
@@ -19,6 +20,16 @@ firebase.initializeApp(firebaseConfig);
 const gamesCollectionName = 'games';
 const playersCollectionName = 'players';
 const db = firebase.firestore();
+
+export const auth = firebase.auth();
+
+/**
+ * Signs the current browser session in anonymously so every user has a
+ * Firebase-verified identity. This is required for Firestore security rules
+ * that enforce `request.auth != null`.
+ */
+export const ensureSignedIn = (): Promise<firebase.auth.UserCredential> =>
+  firebase.auth().signInAnonymously();
 db.settings({ experimentalAutoDetectLongPolling: true });
 // Use Firestore Emulator if the environment variable is set
 if (process.env.VITE_USE_FIRESTORE_EMULATOR === 'true') {
