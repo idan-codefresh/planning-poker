@@ -12,7 +12,7 @@ import { PlusSVG } from '../SVGs/Plus';
 import { JoinSVG } from '../SVGs/Join';
 import { ThemeControl } from '../ThemeControl/ThemeControl';
 import { MenuItem } from './MenuItem';
-export const title = 'Planning Poker';
+export const title = 'Octo Planning Poker';
 
 export const Toolbar = () => {
   const history = useHistory();

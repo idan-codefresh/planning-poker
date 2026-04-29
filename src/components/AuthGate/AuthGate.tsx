@@ -47,14 +47,21 @@ export const AuthGate: React.FC<AuthGateProps> = ({ children }) => {
       >
         {/* Logo / title */}
         <div className='flex flex-col items-center gap-2'>
-          <svg className='h-8 w-8' viewBox='0 0 24 24' fill='none'>
-            <rect x='3' y='3' width='7' height='10' rx='1.5' fill='var(--lin-accent)' opacity='0.9'/>
-            <rect x='13' y='3' width='7' height='10' rx='1.5' fill='var(--lin-accent)' opacity='0.6'/>
-            <rect x='3' y='16' width='7' height='5' rx='1.5' fill='var(--lin-accent)' opacity='0.4'/>
-            <rect x='13' y='16' width='7' height='5' rx='1.5' fill='var(--lin-accent)' opacity='0.25'/>
+          <svg className='h-10 w-10' viewBox='0 0 32 32' fill='none' xmlns='http://www.w3.org/2000/svg'>
+            <ellipse cx='16' cy='13' rx='9' ry='8' fill='#5E6AD2' />
+            <circle cx='13' cy='11' r='1.8' fill='white' />
+            <circle cx='19' cy='11' r='1.8' fill='white' />
+            <circle cx='13.5' cy='11.5' r='0.9' fill='#1e1b4b' />
+            <circle cx='19.5' cy='11.5' r='0.9' fill='#1e1b4b' />
+            <path d='M8 19 Q6 23 8 26 Q9 28 10 26 Q11 24 10 21' stroke='#5E6AD2' strokeWidth='2' strokeLinecap='round' fill='none'/>
+            <path d='M11 21 Q10 25 11 28 Q12 30 13 28 Q14 26 13 23' stroke='#5E6AD2' strokeWidth='2' strokeLinecap='round' fill='none'/>
+            <path d='M14.5 21.5 Q14 26 15 29 Q16 31 17 29 Q18 27 17 24' stroke='#5E6AD2' strokeWidth='2' strokeLinecap='round' fill='none'/>
+            <path d='M18 21 Q18 25 19 28 Q20 30 21 28 Q22 26 21 23' stroke='#5E6AD2' strokeWidth='2' strokeLinecap='round' fill='none'/>
+            <path d='M21 19 Q23 23 22 26 Q21 28 20 26 Q19 24 20 21' stroke='#5E6AD2' strokeWidth='2' strokeLinecap='round' fill='none'/>
+            <ellipse cx='16' cy='20' rx='8' ry='3' fill='#5E6AD2' />
           </svg>
           <h1 className='text-base font-semibold' style={{ color: 'var(--lin-text)' }}>
-            Planning Poker
+            Octo Planning Poker
           </h1>
           <p className='text-xs' style={{ color: 'var(--lin-text-3)' }}>Sign in to continue</p>
         </div>
