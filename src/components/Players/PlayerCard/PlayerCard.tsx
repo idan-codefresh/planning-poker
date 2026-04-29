@@ -14,70 +14,88 @@ interface PlayerCardProps {
 }
 
 export const PlayerCard: React.FC<PlayerCardProps> = ({ game, player, currentPlayerId }) => {
-  const removeUser = (gameId: string, playerId: string) => {
-    removePlayer(gameId, playerId);
-  };
+  const isCurrentPlayer = player.id === currentPlayerId;
+  const isMod = isModerator(game.createdById, currentPlayerId, game.isAllowMembersToManageSession);
+  const cardValue = getCardValue(player, game);
+  const isFinished = game.gameStatus === Status.Finished;
+  const voted = player.status === Status.Finished;
 
   return (
     <div
-      className='rounded shadow-lg w-25 bg-gray-200 dark:bg-gray-800 border-gray-300 dark:border-gray-600 border mb-2 m-3'
+      className='relative flex flex-col rounded-lg transition-all duration-200 w-[82px]'
       style={{
-        backgroundColor: getCardColor(game, player.value),
+        background: isFinished ? getCardColor(game, player.value) || 'var(--lin-surface)' : 'var(--lin-surface)',
+        border: `1px solid ${isCurrentPlayer ? 'var(--lin-accent)' : 'var(--lin-border-strong)'}`,
+        boxShadow: isCurrentPlayer ? '0 0 0 1px var(--lin-accent)' : 'none',
       }}
     >
-      <div className='text-center -mt-5 mx-auto w-[95%] bg-white dark:bg-gray-900 border-2  border-gray-400 dark:border-gray-700 rounded-2xl flex items-center justify-around px-3 py-1'>
-        <div className='text-center font-semibold text-sm truncate' title={player.name}>
+      {/* Name row */}
+      <div
+        className='flex items-center justify-between gap-1 px-2 pt-2 pb-1'
+        style={{ borderBottom: '1px solid var(--lin-border)' }}
+      >
+        <span
+          className='text-xs font-medium truncate flex-1'
+          style={{ color: 'var(--lin-text)' }}
+          title={player.name}
+        >
           {player.name}
-        </div>
-        {isModerator(game.createdById, currentPlayerId, game.isAllowMembersToManageSession) &&
-          player.id !== currentPlayerId && (
-            <button
-              title='Remove'
-              className='cursor-pointer  p-0.5 mt-0.5 rounded hover:bg-red-100 transition'
-              onClick={() => removeUser(game.id, player.id)}
-              data-testid='remove-button'
-            >
-              <TrashSVG className='h-4 w-4 text-red-400' />
-            </button>
-          )}
-      </div>
-      <div className='flex items-center justify-center text-gray-800 py-6 mb-3'>
-        <span className={`${getCardValue(player, game)?.length < 2 ? 'text-4xl' : 'text-3xl'}`}>
-          {getCardValue(player, game)}
         </span>
+        {isMod && !isCurrentPlayer && (
+          <button
+            title='Remove'
+            className='flex-shrink-0 rounded p-0.5 transition hover:bg-red-500/10'
+            onClick={() => removePlayer(game.id, player.id)}
+            data-testid='remove-button'
+          >
+            <TrashSVG className='h-3 w-3 text-red-400' />
+          </button>
+        )}
+      </div>
+
+      {/* Value area */}
+      <div className='flex items-center justify-center py-4'>
+        {!voted && !isFinished ? (
+          <span className='text-2xl opacity-40'>·</span>
+        ) : (
+          <span
+            className={`font-semibold leading-none ${cardValue.length < 2 ? 'text-3xl' : 'text-2xl'}`}
+            style={{ color: isFinished ? 'var(--lin-text)' : 'var(--lin-text-2)' }}
+          >
+            {cardValue}
+          </span>
+        )}
+      </div>
+
+      {/* Status dot */}
+      <div className='flex justify-center pb-2'>
+        <span
+          className='inline-block h-1.5 w-1.5 rounded-full'
+          style={{ background: voted ? 'var(--lin-green)' : 'var(--lin-text-3)' }}
+        />
       </div>
     </div>
   );
 };
 
 const getCardColor = (game: Game, value: number | undefined): string => {
-  if (game.gameStatus == Status.Finished) {
+  if (game.gameStatus === Status.Finished) {
     const card = getCards(game.gameType).find((card) => card.value === value);
-    return card ? card.color : '';
+    return card?.color ?? '';
   }
   return '';
 };
 
-const getCardValue = (player: Player, game: Game) => {
+const getCardValue = (player: Player, game: Game): string => {
   if (game.gameStatus !== Status.Finished) {
     return player.status === Status.Finished ? '👍' : '🤔';
   }
-
-  if (game.gameStatus === Status.Finished) {
-    if (player.status === Status.Finished) {
-      if (player.value && player.value === -1) {
-        return player.emoji || '☕'; // coffee emoji
-      }
-      return getCardDisplayValue(game, player.value);
-    }
-    return '🤔';
-  }
-  return '';
+  if (player.status !== Status.Finished) return '🤔';
+  if (player.value === -1) return player.emoji || '☕';
+  return getCardDisplayValue(game, player.value);
 };
 
 const getCardDisplayValue = (game: Game, cardValue: number | undefined): string => {
   const cards = game.cards?.length > 0 ? game.cards : getCards(game.gameType);
-  return (
-    cards.find((card) => card.value === cardValue)?.displayValue || cardValue?.toString() || ''
-  );
+  return cards.find((card) => card.value === cardValue)?.displayValue || cardValue?.toString() || '';
 };

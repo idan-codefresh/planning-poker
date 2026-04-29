@@ -95,6 +95,7 @@ interface IssueListProps {
   error: string;
   onSelect: (i: LinearIssue) => void;
   onPreview: (i: LinearIssue) => void;
+  onQueueStart?: (issues: LinearIssue[]) => void;
 }
 
 // ── Root component ─────────────────────────────────────────────────────────────
@@ -322,8 +323,7 @@ const ProjectsTab: React.FC<{
           <button onClick={() => setSelected(null)} className='text-xs text-violet-500 hover:underline'>← Projects</button>
           <span className='text-sm font-medium truncate max-w-[60%]'>{selected.name}</span>
         </div>
-        <QueueBanner count={issues.length} loading={issuesLoading} onQueueStart={() => onQueueStart(issues)} />
-        <IssueList issues={issues} loading={issuesLoading} error={issuesError} onSelect={onSelect} onPreview={onPreview} />
+        <IssueList issues={issues} loading={issuesLoading} error={issuesError} onSelect={onSelect} onPreview={onPreview} onQueueStart={onQueueStart} />
       </div>
     );
   }
@@ -428,8 +428,7 @@ const CyclesTab: React.FC<{
           <button onClick={() => setSelectedCycle(null)} className='text-xs text-violet-500 hover:underline'>← Cycles</button>
           <span className='text-sm font-medium truncate max-w-[60%]'>{cycleName(selectedCycle)}</span>
         </div>
-        <QueueBanner count={issues.length} loading={issuesLoading} onQueueStart={() => onQueueStart(issues)} />
-        <IssueList issues={issues} loading={issuesLoading} error={issuesError} onSelect={onSelect} onPreview={onPreview} />
+        <IssueList issues={issues} loading={issuesLoading} error={issuesError} onSelect={onSelect} onPreview={onPreview} onQueueStart={onQueueStart} />
       </div>
     );
   }
@@ -505,8 +504,7 @@ const ViewsTab: React.FC<{
           <button onClick={() => setSelectedView(null)} className='text-xs text-violet-500 hover:underline'>← Views</button>
           <span className='text-sm font-medium truncate max-w-[60%]'>{selectedView.name}</span>
         </div>
-        <QueueBanner count={issues.length} loading={issuesLoading} onQueueStart={() => onQueueStart(issues)} />
-        <IssueList issues={issues} loading={issuesLoading} error={issuesError} onSelect={onSelect} onPreview={onPreview} />
+        <IssueList issues={issues} loading={issuesLoading} error={issuesError} onSelect={onSelect} onPreview={onPreview} onQueueStart={onQueueStart} />
       </div>
     );
   }
@@ -548,12 +546,15 @@ const QueueBanner: React.FC<{ count: number; loading: boolean; onQueueStart: () 
   );
 };
 
-const IssueList: React.FC<IssueListProps> = ({ issues, loading, error, onSelect, onPreview }) => {
+const IssueList: React.FC<IssueListProps> = ({ issues, loading, error, onSelect, onPreview, onQueueStart }) => {
   const [focusedIdx, setFocusedIdx] = useState(0);
+  const [hideSubIssues, setHideSubIssues] = useState(false);
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => { setFocusedIdx(0); }, [issues]);
+  const filteredIssues = hideSubIssues ? issues.filter((i) => !i.parent?.id) : issues;
+
+  useEffect(() => { setFocusedIdx(0); }, [filteredIssues]);
 
   useEffect(() => {
     itemRefs.current[focusedIdx]?.scrollIntoView({ block: 'nearest' });
@@ -567,33 +568,54 @@ const IssueList: React.FC<IssueListProps> = ({ issues, loading, error, onSelect,
   }, [loading, issues.length]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (issues.length === 0) return;
+    if (filteredIssues.length === 0) return;
     if (e.key === 'ArrowDown') {
       e.preventDefault();
-      setFocusedIdx((i) => Math.min(i + 1, issues.length - 1));
+      setFocusedIdx((i) => Math.min(i + 1, filteredIssues.length - 1));
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       setFocusedIdx((i) => Math.max(i - 1, 0));
     } else if (e.key === 'Enter') {
       e.preventDefault();
-      onSelect(issues[focusedIdx]);
+      onSelect(filteredIssues[focusedIdx]);
     } else if (e.key === ' ') {
       e.preventDefault();
-      onPreview(issues[focusedIdx]);
+      onPreview(filteredIssues[focusedIdx]);
     }
   };
 
+  const subIssueCount = issues.filter((i) => i.parent?.id).length;
+
   return (
-    <div
-      ref={containerRef}
-      tabIndex={0}
-      onKeyDown={handleKeyDown}
-      className='overflow-y-auto divide-y divide-gray-100 dark:divide-gray-800 rounded border border-gray-200 dark:border-gray-700 flex-1 outline-none focus:ring-1 focus:ring-violet-300 dark:focus:ring-violet-700'
-    >
+    <div className='flex flex-col flex-1 min-h-0 gap-1'>
+      {onQueueStart && (
+        <QueueBanner
+          count={filteredIssues.length}
+          loading={loading}
+          onQueueStart={() => onQueueStart(filteredIssues)}
+        />
+      )}
+      {subIssueCount > 0 && (
+        <label className='flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 cursor-pointer select-none px-1'>
+          <input
+            type='checkbox'
+            checked={hideSubIssues}
+            onChange={(e) => setHideSubIssues(e.target.checked)}
+            className='rounded border-gray-300 text-violet-600 focus:ring-violet-500'
+          />
+          Hide sub-issues ({subIssueCount})
+        </label>
+      )}
+      <div
+        ref={containerRef}
+        tabIndex={0}
+        onKeyDown={handleKeyDown}
+        className='overflow-y-auto divide-y divide-gray-100 dark:divide-gray-800 rounded border border-gray-200 dark:border-gray-700 flex-1 outline-none focus:ring-1 focus:ring-violet-300 dark:focus:ring-violet-700'
+      >
       {loading && <div className='flex justify-center items-center py-8 text-sm text-gray-400'>Loading…</div>}
       {!loading && error && <div className='py-6 text-center text-xs text-red-500'>{error}</div>}
-      {!loading && !error && issues.length === 0 && <div className='py-6 text-center text-xs text-gray-400'>No issues found</div>}
-      {!loading && issues.map((issue, idx) => (
+      {!loading && !error && filteredIssues.length === 0 && <div className='py-6 text-center text-xs text-gray-400'>No issues found</div>}
+      {!loading && filteredIssues.map((issue, idx) => (
         <div
           key={issue.id}
           className={`flex items-start gap-3 px-4 py-2.5 transition ${
@@ -616,8 +638,9 @@ const IssueList: React.FC<IssueListProps> = ({ issues, loading, error, onSelect,
                 <span className='text-xs text-gray-400'>·</span>
                 <span className='text-xs text-gray-400'>{issue.team.name}</span>
                 {issue.estimate != null && (
-                  <><span className='text-xs text-gray-400'>·</span>
-                  <span className='text-xs text-violet-500 font-semibold'>{issue.estimate} pts</span></>
+                  <span className='px-1.5 py-0.5 rounded-full bg-violet-100 dark:bg-violet-900/40 text-violet-600 dark:text-violet-300 font-semibold text-[10px]'>
+                    {issue.estimate} pts
+                  </span>
                 )}
               </div>
               <p className='text-sm truncate'>{issue.title}</p>
@@ -636,13 +659,14 @@ const IssueList: React.FC<IssueListProps> = ({ issues, loading, error, onSelect,
           </button>
         </div>
       ))}
-      {!loading && issues.length > 0 && (
+      {!loading && filteredIssues.length > 0 && (
         <div className='px-4 py-1.5 text-xs text-gray-300 dark:text-gray-600 border-t border-gray-100 dark:border-gray-800 flex gap-3'>
           <span>↑↓ navigate</span>
           <span>Enter select</span>
           <span>Space preview</span>
         </div>
       )}
+      </div>
     </div>
   );
 };

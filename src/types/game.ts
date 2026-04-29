@@ -27,6 +27,7 @@ export interface Game {
   linearIssueUrl?: string;
   linearIssueIdentifier?: string;
   linearIssueTitle?: string;
+  linearIssueEstimate?: number | null;
   linearIssueDescription?: string;
   linearIssueStateName?: string;
   linearIssueStateColor?: string;

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { IssueDetailCard } from '../../../components/Linear/IssueDetailCard';
 import { LinearIcon, LinearIssuePicker } from '../../../components/Linear/LinearIssuePicker';
 import {
@@ -34,7 +34,9 @@ interface GameAreaProps {
 export const GameArea: React.FC<GameAreaProps> = ({ game, players, currentPlayerId }) => {
   const [showLinearPicker, setShowLinearPicker] = useState(false);
   const [linearUpdateStatus, setLinearUpdateStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [linearUpdateError, setLinearUpdateError] = useState<string | null>(null);
   const [showQueueList, setShowQueueList] = useState(false);
+  const [queueSearch, setQueueSearch] = useState('');
 
   const [issueQueue, setIssueQueue] = useState<LinearIssue[]>(
     () => (getLinearIssueQueue(game.id) as LinearIssue[]) ?? [],
@@ -50,7 +52,7 @@ export const GameArea: React.FC<GameAreaProps> = ({ game, players, currentPlayer
         identifier: game.linearIssueIdentifier ?? '',
         title: game.linearIssueTitle ?? game.storyName ?? '',
         url: game.linearIssueUrl ?? '',
-        estimate: undefined,
+        estimate: game.linearIssueEstimate ?? undefined,
         state: {
           name: game.linearIssueStateName ?? '',
           color: game.linearIssueStateColor ?? '#94a3b8',
@@ -80,6 +82,7 @@ export const GameArea: React.FC<GameAreaProps> = ({ game, players, currentPlayer
       linearIssueUrl: issue.url,
       linearIssueIdentifier: issue.identifier,
       linearIssueTitle: issue.title,
+      linearIssueEstimate: detail?.estimate ?? issue.estimate ?? null,
       linearIssueDescription: detail?.description ?? null,
       linearIssueStateName: detail?.state.name ?? issue.state.name,
       linearIssueStateColor: detail?.state.color ?? issue.state.color,
@@ -134,17 +137,34 @@ export const GameArea: React.FC<GameAreaProps> = ({ game, players, currentPlayer
     setLinearUpdateStatus('saving');
     try {
       await updateLinearIssueEstimate(key, game.linearIssueId, estimate);
+      await updateGame(game.id, { linearIssueEstimate: estimate });
       setLinearUpdateStatus('saved');
+      setLinearUpdateError(null);
       setTimeout(() => setLinearUpdateStatus('idle'), 3000);
-    } catch {
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error('[Linear write-back]', msg);
+      setLinearUpdateError(msg);
       setLinearUpdateStatus('error');
-      setTimeout(() => setLinearUpdateStatus('idle'), 3000);
+      setTimeout(() => { setLinearUpdateStatus('idle'); setLinearUpdateError(null); }, 6000);
     }
   };
 
   const adj = game.linearIssueId && game.gameStatus === 'Finished'
     ? getAdjacentEstimates(game, players)
     : null;
+
+  // Arrow key navigation for issue queue
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement).tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+      if (e.key === 'ArrowLeft') { e.preventDefault(); handleQueuePrev(); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); handleQueueNext(); }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [queueIndex, issueQueue]);
 
   return (
     // pb-12 to clear the fixed bottom bar
@@ -153,10 +173,10 @@ export const GameArea: React.FC<GameAreaProps> = ({ game, players, currentPlayer
       <Players game={game} players={players} currentPlayerId={currentPlayerId} />
 
       {/* Middle: two-column split */}
-      <div className='flex min-h-0 gap-0 border-t border-gray-100 dark:border-gray-800'>
+      <div className='flex min-h-0 gap-0' style={{ borderTop: '1px solid var(--lin-border)' }}>
 
         {/* Left half: Linear panel */}
-        <div className='w-1/2 border-r border-gray-100 dark:border-gray-800 flex flex-col p-4 gap-3'>
+        <div className='w-1/2 flex flex-col p-4 gap-3' style={{ borderRight: '1px solid var(--lin-border)' }}>
           {currentIssueDetail ? (
             <>
               <IssueDetailCard
@@ -166,48 +186,31 @@ export const GameArea: React.FC<GameAreaProps> = ({ game, players, currentPlayer
               />
               {/* Queue nav */}
               {issueQueue.length > 0 && (
-                <div className='rounded-lg overflow-hidden border border-violet-200 dark:border-violet-800'>
-                  <div className='flex items-center gap-2 bg-violet-50 dark:bg-violet-900/20 px-3 py-2'>
-                    <button
-                      onClick={handleQueuePrev}
-                      disabled={queueIndex === 0}
-                      className='text-violet-600 disabled:opacity-30 hover:bg-violet-100 dark:hover:bg-violet-800 rounded p-0.5 transition'
-                    >←</button>
-                    <button
-                      onClick={() => setShowQueueList((v) => !v)}
-                      className='text-xs flex-1 text-center font-medium hover:text-violet-700 dark:hover:text-violet-300 transition flex items-center justify-center gap-1'
-                      title='Show issue list'
-                    >
-                      {queueIndex + 1} / {issueQueue.length}
-                      <span className='text-gray-400'>{showQueueList ? '▲' : '▼'}</span>
-                    </button>
-                    <button
-                      onClick={handleQueueNext}
-                      disabled={queueIndex >= issueQueue.length - 1}
-                      className='text-xs bg-violet-600 hover:bg-violet-700 disabled:opacity-30 text-white rounded px-2 py-0.5 font-semibold transition'
-                    >Next →</button>
-                    <button
-                      onClick={handleClearQueue}
-                      className='text-gray-400 hover:text-red-500 transition text-xs'
-                    >✕</button>
-                  </div>
-                  {showQueueList && (
-                    <div className='max-h-56 overflow-y-auto border-t border-violet-100 dark:border-violet-800 bg-white dark:bg-gray-900'>
-                      {issueQueue.map((issue, idx) => (
-                        <button
-                          key={issue.id}
-                          onClick={() => handleQueueJump(idx)}
-                          className={`w-full text-left px-3 py-2 flex items-center gap-2 hover:bg-violet-50 dark:hover:bg-violet-900/20 transition text-xs border-b border-gray-100 dark:border-gray-800 last:border-0 ${
-                            idx === queueIndex ? 'bg-violet-50 dark:bg-violet-900/20 font-semibold text-violet-700 dark:text-violet-300' : 'text-gray-700 dark:text-gray-300'
-                          }`}
-                        >
-                          {idx === queueIndex && <span className='text-violet-500 flex-shrink-0'>▶</span>}
-                          <span className='font-mono text-gray-400 flex-shrink-0 w-14 text-right'>{issue.identifier}</span>
-                          <span className='truncate'>{issue.title}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
+                <div
+                  className='flex items-center gap-2 rounded-lg px-3 py-2'
+                  style={{ background: 'var(--lin-accent-subtle)', border: '1px solid var(--lin-border-strong)' }}
+                >
+                  <button
+                    onClick={handleQueuePrev}
+                    disabled={queueIndex === 0}
+                    className='rounded p-0.5 transition disabled:opacity-30'
+                    style={{ color: 'var(--lin-accent)' }}
+                  >←</button>
+                  <button
+                    onClick={() => setShowQueueList((v) => !v)}
+                    className='text-xs flex-1 text-center font-medium transition flex items-center justify-center gap-1'
+                    style={{ color: 'var(--lin-text-2)' }}
+                    title='Show issue list'
+                  >
+                    {queueIndex + 1} / {issueQueue.length}
+                    <span style={{ color: 'var(--lin-text-3)' }}>{showQueueList ? '▲' : '▼'}</span>
+                  </button>
+                  <button
+                    onClick={handleQueueNext}
+                    disabled={queueIndex >= issueQueue.length - 1}
+                    className='text-xs text-white rounded px-2 py-0.5 font-semibold transition disabled:opacity-30'
+                    style={{ background: 'var(--lin-accent)' }}
+                  >Next →</button>
                 </div>
               )}
               {/* Write-back */}
@@ -217,43 +220,49 @@ export const GameArea: React.FC<GameAreaProps> = ({ game, players, currentPlayer
                     <button
                       onClick={() => handleLinearWriteBack(adj.lower!.value)}
                       disabled={linearUpdateStatus === 'saving'}
-                      className='text-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 disabled:opacity-50 rounded-lg px-3 py-1.5 font-semibold transition shadow-sm'
+                      className='text-xs font-semibold rounded-md px-3 py-1.5 transition disabled:opacity-50'
+                      style={{ background: 'var(--lin-elevated)', border: '1px solid var(--lin-border-strong)', color: 'var(--lin-text-2)' }}
                     >↓ {adj.lower.displayValue}</button>
                   )}
                   <button
                     onClick={() => handleLinearWriteBack(adj.current.value)}
                     disabled={linearUpdateStatus === 'saving'}
-                    className='flex items-center gap-1.5 text-sm bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white rounded-lg px-4 py-2 font-semibold transition shadow-sm'
+                    className='flex items-center gap-1.5 text-xs font-semibold text-white rounded-md px-3 py-1.5 transition disabled:opacity-50'
+                    style={{ background: 'var(--lin-accent)' }}
                   >
-                    <LinearIcon className='h-4 w-4 brightness-0 invert' />
-                    {linearUpdateStatus === 'saving' ? 'Saving…' : `Set ${adj.current.displayValue} in Linear`}
+                    <LinearIcon className='h-3.5 w-3.5 brightness-0 invert' />
+                    {linearUpdateStatus === 'saving' ? 'Saving…' : `Set ${adj.current.displayValue} pts`}
                   </button>
                   {adj.higher && (
                     <button
                       onClick={() => handleLinearWriteBack(adj.higher!.value)}
                       disabled={linearUpdateStatus === 'saving'}
-                      className='text-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 disabled:opacity-50 rounded-lg px-3 py-1.5 font-semibold transition shadow-sm'
+                      className='text-xs font-semibold rounded-md px-3 py-1.5 transition disabled:opacity-50'
+                      style={{ background: 'var(--lin-elevated)', border: '1px solid var(--lin-border-strong)', color: 'var(--lin-text-2)' }}
                     >↑ {adj.higher.displayValue}</button>
                   )}
                   {linearUpdateStatus === 'saved' && (
-                    <span className='text-sm text-green-600 font-medium'>✓ Saved!</span>
+                    <span className='text-xs font-medium' style={{ color: 'var(--lin-green)' }}>✓ Saved</span>
                   )}
                   {linearUpdateStatus === 'error' && (
-                    <span className='text-sm text-red-500'>Failed</span>
+                    <span className='text-xs' style={{ color: 'var(--lin-red)' }} title={linearUpdateError ?? undefined}>
+                      Failed{linearUpdateError ? `: ${linearUpdateError}` : ''}
+                    </span>
                   )}
                 </div>
               )}
             </>
           ) : (
             /* No issue linked yet — show a prompt */
-            <div className='flex flex-col items-center justify-center h-full gap-3 text-gray-400'>
-              <LinearIcon className='h-10 w-10 opacity-40' />
-              <p className='text-sm'>No issue selected</p>
+            <div className='flex flex-col items-center justify-center h-full gap-3'>
+              <LinearIcon className='h-9 w-9 text-gray-400 dark:text-gray-600' />
+              <p className='text-xs font-medium' style={{ color: 'var(--lin-text-2)' }}>No issue selected</p>
               <button
                 onClick={() => setShowLinearPicker((v) => !v)}
-                className='flex items-center gap-1.5 text-sm bg-violet-600 hover:bg-violet-700 text-white rounded-lg px-4 py-2 font-semibold transition'
+                className='flex items-center gap-1.5 text-xs font-semibold text-white rounded-md px-4 py-2 transition'
+                style={{ background: 'var(--lin-accent)' }}
               >
-                <LinearIcon className='h-4 w-4 brightness-0 invert' />
+                <LinearIcon className='h-3.5 w-3.5 brightness-0 invert' />
                 Browse issues
               </button>
             </div>
@@ -280,22 +289,24 @@ export const GameArea: React.FC<GameAreaProps> = ({ game, players, currentPlayer
             isMod={isModerator(game.createdById, currentPlayerId, game.isAllowMembersToManageSession)}
           />
           {isModerator(game.createdById, currentPlayerId, game.isAllowMembersToManageSession) && (
-            <div className='flex items-center gap-3 mt-2'>
+            <div className='flex items-center gap-2 mt-3'>
               <button
                 onClick={() => finishGame(game.id)}
                 disabled={game.gameStatus === Status.Finished}
-                className='flex items-center gap-2 px-5 py-2 bg-green-500 hover:bg-green-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold rounded-xl shadow transition text-sm'
+                className='flex items-center gap-2 px-5 py-2 text-white text-sm font-semibold rounded-lg transition disabled:opacity-40 disabled:cursor-not-allowed'
+                style={{ background: 'var(--lin-green)' }}
               >
-                <svg className='h-4 w-4' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'>
+                <svg className='h-4 w-4' viewBox='0 0 24 24' fill='none'>
                   <path d='M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z' fill='currentColor'/>
                 </svg>
                 Reveal
               </button>
               <button
                 onClick={() => resetGame(game.id)}
-                className='flex items-center gap-2 px-5 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-semibold rounded-xl shadow transition text-sm'
+                className='flex items-center gap-2 px-5 py-2 text-sm font-semibold rounded-lg transition'
+                style={{ background: 'var(--lin-elevated)', border: '1px solid var(--lin-border-strong)', color: 'var(--lin-text-2)' }}
               >
-                <svg className='h-4 w-4' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'>
+                <svg className='h-4 w-4' viewBox='0 0 24 24' fill='none'>
                   <path d='M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z' fill='currentColor'/>
                 </svg>
                 Restart
@@ -304,6 +315,88 @@ export const GameArea: React.FC<GameAreaProps> = ({ game, players, currentPlayer
           )}
         </div>
       </div>
+
+      {/* Queue list — fixed right-side drawer */}
+      {showQueueList && issueQueue.length > 0 && (
+        <>
+          {/* Backdrop */}
+          <div className='fixed inset-0 z-40' onClick={() => { setShowQueueList(false); setQueueSearch(''); }} />
+          {/* Panel */}
+          <div className='fixed top-0 right-0 bottom-12 z-50 w-[420px] bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700 shadow-xl flex flex-col'>
+            {/* Header */}
+            <div className='flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800 flex-shrink-0'>
+              <span className='text-sm font-semibold text-gray-800 dark:text-gray-100'>
+                Issues ({issueQueue.length})
+              </span>
+              <button
+                onClick={() => { setShowQueueList(false); setQueueSearch(''); }}
+                className='text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition text-lg leading-none'
+              >✕</button>
+            </div>
+            {/* Search */}
+            <div className='px-4 py-2.5 border-b border-gray-100 dark:border-gray-800 flex-shrink-0'>
+              <div className='relative'>
+                <svg className='absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400' viewBox='0 0 24 24' fill='none'>
+                  <path d='M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z' stroke='currentColor' strokeWidth='2' strokeLinecap='round'/>
+                </svg>
+                <input
+                  autoFocus
+                  type='text'
+                  value={queueSearch}
+                  onChange={(e) => setQueueSearch(e.target.value)}
+                  placeholder='Search issues…'
+                  className='w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-400'
+                />
+                {queueSearch && (
+                  <button
+                    onClick={() => setQueueSearch('')}
+                    className='absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs'
+                  >✕</button>
+                )}
+              </div>
+            </div>
+            {/* List */}
+            <div className='overflow-y-auto flex-1'>
+              {(() => {
+                const q = queueSearch.trim().toLowerCase();
+                const filtered = q
+                  ? issueQueue.filter((i) => i.title.toLowerCase().includes(q) || i.identifier.toLowerCase().includes(q))
+                  : issueQueue;
+                if (filtered.length === 0) {
+                  return <p className='text-center text-xs text-gray-400 py-8'>No issues match "{queueSearch}"</p>;
+                }
+                return filtered.map((issue) => {
+                  const idx = issueQueue.indexOf(issue);
+                  return (
+                    <button
+                      key={issue.id}
+                      onClick={() => handleQueueJump(idx)}
+                      className={`w-full text-left px-4 py-3 flex items-center gap-3 hover:bg-violet-50 dark:hover:bg-violet-900/20 transition border-b border-gray-100 dark:border-gray-800 last:border-0 ${
+                        idx === queueIndex ? 'bg-violet-50 dark:bg-violet-900/20' : ''
+                      }`}
+                    >
+                      <span className='flex-shrink-0 w-3 text-violet-500 text-sm'>{idx === queueIndex ? '▶' : ''}</span>
+                      <div className='min-w-0 flex-1'>
+                        <div className='flex items-center gap-2'>
+                          <span className='font-mono text-xs text-gray-400 flex-shrink-0'>{issue.identifier}</span>
+                          {issue.estimate != null && (
+                            <span className='flex-shrink-0 px-1.5 py-0.5 rounded-full bg-violet-100 dark:bg-violet-900/40 text-violet-600 dark:text-violet-300 font-semibold text-[10px]'>
+                              {issue.estimate} pts
+                            </span>
+                          )}
+                        </div>
+                        <p className={`text-sm mt-0.5 ${idx === queueIndex ? 'font-semibold text-violet-700 dark:text-violet-300' : 'text-gray-700 dark:text-gray-300'}`}>
+                          {issue.title}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                });
+              })()}
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Fixed bottom bar */}
       <GameController

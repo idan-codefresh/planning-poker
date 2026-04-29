@@ -14,6 +14,7 @@ export interface LinearIssue {
     id: string;
     name: string;
   };
+  parent?: { id: string } | null;
 }
 
 export interface LinearTeam {
@@ -84,6 +85,7 @@ const ISSUE_FIELDS = `
   estimate
   state { name color }
   team { id name }
+  parent { id }
 `;
 
 // ── Auth ───────────────────────────────────────────────────────────────────────
@@ -315,11 +317,11 @@ export const updateLinearIssueEstimate = async (
   estimate: number,
 ): Promise<void> => {
   const gql = `
-    mutation UpdateEstimate($id: String!, $estimate: Float) {
+    mutation UpdateEstimate($id: String!, $estimate: Int) {
       issueUpdate(id: $id, input: { estimate: $estimate }) {
         success
       }
     }
   `;
-  await linearQuery(apiKey, gql, { id: issueId, estimate });
+  await linearQuery(apiKey, gql, { id: issueId, estimate: Math.round(estimate) });
 };

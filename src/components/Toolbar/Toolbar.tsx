@@ -5,13 +5,10 @@ import { useEffect, useRef, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { useBreakpoint } from '../../hooks/useBreakpoint';
 import { LanguageControl } from '../LanguageControl/LanguageControl';
-import { ExampleSVG } from '../SVGs/Example';
 import { GithubSVG } from '../SVGs/Github';
-import { GuideSVG } from '../SVGs/Guide';
-import { InfoSVG } from '../SVGs/Info';
-import { JoinSVG } from '../SVGs/Join';
 import { MenuSVG } from '../SVGs/Menu';
 import { PlusSVG } from '../SVGs/Plus';
+import { JoinSVG } from '../SVGs/Join';
 import { ThemeControl } from '../ThemeControl/ThemeControl';
 import { MenuItem } from './MenuItem';
 export const title = 'Planning Poker';
@@ -24,97 +21,65 @@ export const Toolbar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const toggleDropdown = () => {
-    setIsDropdownOpen(!isDropdownOpen);
-  };
+  const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
 
   const handleNavigation = (path: string) => {
     history.push(path);
-    setIsDropdownOpen(false); // Close dropdown after navigation
+    setIsDropdownOpen(false);
   };
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsDropdownOpen(false);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const menuItems = [
-    {
-      icon: <InfoSVG />,
-      label: t('toolbar.menu.about'),
-      onClick: () => handleNavigation('/about-planning-poker'),
-    },
-    {
-      icon: <GuideSVG />,
-      label: t('toolbar.menu.guide'),
-      onClick: () => handleNavigation('/guide'),
-    },
-    {
-      icon: <ExampleSVG />,
-      label: t('toolbar.menu.examples'),
-      onClick: () => handleNavigation('/examples'),
-    },
-    {
-      icon: <PlusSVG />,
-      label: t('toolbar.menu.newSession'),
-      onClick: () => handleNavigation('/'),
-      testId: 'toolbar.menu.newSession',
-    },
-    {
-      icon: <JoinSVG />,
-      label: t('toolbar.menu.joinSession'),
-      onClick: () => handleNavigation('/join'),
-      testId: 'toolbar.menu.joinSession',
-    },
-    {
-      icon: <GithubSVG />,
-      label: 'GitHub',
-      onClick: () => (window.location.href = 'https://github.com/hellomuthu23/planning-poker'),
-    },
+    { icon: <PlusSVG />, label: t('toolbar.menu.newSession'), onClick: () => handleNavigation('/'), testId: 'toolbar.menu.newSession' },
+    { icon: <JoinSVG />, label: t('toolbar.menu.joinSession'), onClick: () => handleNavigation('/join'), testId: 'toolbar.menu.joinSession' },
+    { icon: <GithubSVG />, label: 'GitHub', onClick: () => (window.location.href = 'https://github.com/hellomuthu23/planning-poker') },
   ];
-  return (
-    <div className='flex w-full items-center shadow-sm dark:shadow-gray-800'>
-      <div className='inline-flex items-center'>
-        <button className='button-ghost flex items-center' onClick={() => history.push('/')}>
-          <div className='pr-1'>
-            <GamesSVG />
-          </div>
-          <p className='md:text-2xl text-sm font-normal'>{title}</p>
-        </button>
-      </div>
 
-      {/* Right Section */}
-      <div className='inline-flex items-center justify-end flex-1'>
+  return (
+    <div
+      className='flex w-full items-center px-4 h-11 flex-shrink-0'
+      style={{ borderBottom: '1px solid var(--lin-border)', background: 'var(--lin-surface)' }}
+    >
+      {/* Logo */}
+      <button
+        className='flex items-center gap-2 mr-6 opacity-90 hover:opacity-100 transition-opacity'
+        onClick={() => history.push('/')}
+      >
+        <GamesSVG />
+        <span className='text-sm font-semibold tracking-tight' style={{ color: 'var(--lin-text)' }}>
+          {title}
+        </span>
+      </button>
+
+      {/* Nav */}
+      <div className='flex items-center flex-1 justify-end gap-1'>
         {screenSize === 'md' || screenSize === 'sm' || screenSize === 'xs' ? (
-          <div className='flex relative' ref={dropdownRef}>
+          <div className='flex relative items-center' ref={dropdownRef}>
             <ThemeControl />
             <LanguageControl />
             <button
-              className='button-ghost flex items-center'
+              className='p-1.5 rounded-md transition hover:bg-[var(--lin-elevated)] text-[var(--lin-text-2)]'
               onClick={toggleDropdown}
               aria-label='Toggle Menu'
             >
               <MenuSVG />
             </button>
             {isDropdownOpen && (
-              <div className='absolute right-0 mt-10 w-48 bg-white dark:bg-gray-800 shadow-lg rounded-lg z-50 flex flex-col'>
+              <div
+                className='absolute right-0 top-10 w-48 rounded-lg z-50 flex flex-col py-1 shadow-lg'
+                style={{ background: 'var(--lin-surface)', border: '1px solid var(--lin-border-strong)' }}
+              >
                 {menuItems.map((item, index) => (
-                  <MenuItem
-                    icon={item.icon}
-                    label={item.label}
-                    onClick={item.onClick}
-                    key={index}
-                    testId={item.testId}
-                  />
+                  <MenuItem icon={item.icon} label={item.label} onClick={item.onClick} key={index} testId={item.testId} />
                 ))}
               </div>
             )}
@@ -122,14 +87,11 @@ export const Toolbar = () => {
         ) : (
           <>
             {menuItems.map((item, index) => (
-              <MenuItem
-                icon={item.icon}
-                label={item.label}
-                onClick={item.onClick}
-                key={index}
-                testId={item.testId}
-              />
+              <NavButton key={index} onClick={item.onClick} testId={item.testId}>
+                {item.label}
+              </NavButton>
             ))}
+            <div className='w-px h-4 mx-1' style={{ background: 'var(--lin-border-strong)' }} />
             <ThemeControl />
             <LanguageControl />
           </>
@@ -138,3 +100,16 @@ export const Toolbar = () => {
     </div>
   );
 };
+
+const NavButton: React.FC<{ onClick: () => void; testId?: string; children: React.ReactNode }> = ({ onClick, testId, children }) => (
+  <button
+    onClick={onClick}
+    data-testid={testId}
+    className='px-3 py-1.5 rounded-md text-xs font-medium transition'
+    style={{ color: 'var(--lin-text-2)' }}
+    onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--lin-elevated)', e.currentTarget.style.color = 'var(--lin-text)')}
+    onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent', e.currentTarget.style.color = 'var(--lin-text-2)')}
+  >
+    {children}
+  </button>
+);

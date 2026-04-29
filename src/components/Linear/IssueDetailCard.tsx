@@ -103,28 +103,39 @@ export const IssueDetailCard: React.FC<IssueDetailCardProps> = ({
   const hasDesc = !!issue.description?.trim();
 
   return (
-    <div className='w-full bg-white dark:bg-gray-900 rounded-xl shadow border border-gray-200 dark:border-gray-700 overflow-hidden'>
+    <div
+      className='w-full rounded-lg overflow-hidden'
+      style={{ background: 'var(--lin-surface)', border: '1px solid var(--lin-border-strong)' }}
+    >
       {/* Header row */}
-      <div className='flex items-center justify-between px-4 py-2.5 border-b border-gray-100 dark:border-gray-800'>
+      <div
+        className='flex items-center justify-between px-3 py-2'
+        style={{ borderBottom: '1px solid var(--lin-border)' }}
+      >
         <div className='flex items-center gap-2 min-w-0'>
-          <span
-            className='h-2.5 w-2.5 rounded-full flex-shrink-0'
-            style={{ backgroundColor: issue.state.color }}
-          />
+          <span className='h-2 w-2 rounded-full flex-shrink-0' style={{ background: issue.state.color }} />
           <a
             href={issue.url}
             target='_blank'
             rel='noopener noreferrer'
-            className='text-xs font-mono text-gray-400 hover:text-violet-500 flex-shrink-0'
+            className='text-xs font-mono flex-shrink-0 transition'
+            style={{ color: 'var(--lin-text-3)' }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--lin-accent)')}
+            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--lin-text-3)')}
           >
             {issue.identifier}
           </a>
-          <span className='text-xs text-gray-400 flex-shrink-0'>·</span>
-          <span className='text-xs text-gray-500 truncate'>{issue.state.name}</span>
+          <span style={{ color: 'var(--lin-text-3)' }} className='text-xs'>·</span>
+          <span className='text-xs truncate' style={{ color: 'var(--lin-text-3)' }}>{issue.state.name}</span>
           {issue.estimate != null && (
             <>
-              <span className='text-xs text-gray-400'>·</span>
-              <span className='text-xs text-violet-500 font-semibold'>{issue.estimate} pts</span>
+              <span className='text-xs' style={{ color: 'var(--lin-text-3)' }}>·</span>
+              <span
+                className='text-[10px] font-semibold px-1.5 py-0.5 rounded-md'
+                style={{ background: 'var(--lin-accent-subtle)', color: 'var(--lin-accent)' }}
+              >
+                {issue.estimate} pts
+              </span>
             </>
           )}
         </div>
@@ -132,51 +143,55 @@ export const IssueDetailCard: React.FC<IssueDetailCardProps> = ({
           {hasDesc && (
             <button
               onClick={() => setDescExpanded((v) => !v)}
-              className='text-xs text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition'
-              title={descExpanded ? 'Collapse description' : 'Expand description'}
+              className='text-xs transition'
+              style={{ color: 'var(--lin-text-3)' }}
+              title={descExpanded ? 'Collapse' : 'Expand'}
             >
               {descExpanded ? '▲' : '▼'}
             </button>
           )}
           <button
             onClick={onToggleBrowse}
-            className={`flex items-center gap-1 text-xs font-medium rounded px-2.5 py-1 transition ${
-              showBrowse
-                ? 'bg-violet-600 text-white hover:bg-violet-700'
-                : 'bg-violet-50 text-violet-600 hover:bg-violet-100 dark:bg-violet-900/20 dark:text-violet-400 dark:hover:bg-violet-800/30'
-            }`}
+            className='flex items-center gap-1 text-xs font-medium rounded-md px-2.5 py-1 transition'
+            style={showBrowse
+              ? { background: 'var(--lin-accent)', color: '#fff' }
+              : { background: 'var(--lin-accent-subtle)', color: 'var(--lin-accent)' }
+            }
           >
             <LinearIcon className='h-3 w-3' />
-            {showBrowse ? 'Close list' : 'Browse issues'}
+            {showBrowse ? 'Close' : 'Browse'}
           </button>
         </div>
       </div>
 
       {/* Title */}
-      <div className='px-4 pt-2.5 pb-1'>
-        <h3 className='text-sm font-semibold text-gray-900 dark:text-gray-100 leading-snug'>
+      <div className='px-3 pt-2.5 pb-1.5'>
+        <h3 className='text-sm font-semibold leading-snug' style={{ color: 'var(--lin-text)' }}>
           {issue.title}
         </h3>
       </div>
 
-      {/* Labels + assignee row */}
+      {/* Labels + assignee */}
       {(issue.labels.length > 0 || issue.assignee) && (
-        <div className='px-4 pb-2 flex items-center gap-2 flex-wrap'>
+        <div className='px-3 pb-2 flex items-center gap-2 flex-wrap'>
           {issue.labels.map((label) => (
             <span
               key={label.name}
-              className='text-xs px-2 py-0.5 rounded-full font-medium'
-              style={{ backgroundColor: `${label.color}22`, color: label.color }}
+              className='text-[10px] px-2 py-0.5 rounded-full font-medium'
+              style={{ background: `${label.color}22`, color: label.color }}
             >
               {label.name}
             </span>
           ))}
           {issue.assignee && (
-            <div className='flex items-center gap-1 text-xs text-gray-500'>
+            <div className='flex items-center gap-1 text-xs' style={{ color: 'var(--lin-text-2)' }}>
               {issue.assignee.avatarUrl ? (
                 <img src={issue.assignee.avatarUrl} alt='' className='h-4 w-4 rounded-full' />
               ) : (
-                <div className='h-4 w-4 rounded-full bg-gray-200 dark:bg-gray-700 text-[9px] flex items-center justify-center font-bold text-gray-500'>
+                <div
+                  className='h-4 w-4 rounded-full text-[9px] flex items-center justify-center font-bold'
+                  style={{ background: 'var(--lin-elevated)', color: 'var(--lin-text-2)' }}
+                >
                   {issue.assignee.name[0]}
                 </div>
               )}
@@ -188,15 +203,13 @@ export const IssueDetailCard: React.FC<IssueDetailCardProps> = ({
 
       {/* Description */}
       {hasDesc && descExpanded && (
-        <div className='px-4 pb-4 border-t border-gray-100 dark:border-gray-800 pt-3 max-h-64 overflow-y-auto'>
-          {loading ? (
-            <p className='text-xs text-gray-400'>Loading…</p>
-          ) : (
-            renderMarkdown(issue.description!)
-          )}
+        <div className='px-3 pb-4 pt-2.5 max-h-56 overflow-y-auto' style={{ borderTop: '1px solid var(--lin-border)' }}>
+          {loading
+            ? <p className='text-xs' style={{ color: 'var(--lin-text-3)' }}>Loading…</p>
+            : renderMarkdown(issue.description!)
+          }
         </div>
       )}
-
     </div>
   );
 };

@@ -15,7 +15,7 @@ polyfillCountryFlagEmojis();
 
 function App() {
   return (
-    <div className='bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100 min-h-screen'>
+    <div className='min-h-screen' style={{ background: 'var(--lin-bg)', color: 'var(--lin-text)' }}>
       <Suspense
         fallback={
           <div className='text-center items-center justify-center flex'>

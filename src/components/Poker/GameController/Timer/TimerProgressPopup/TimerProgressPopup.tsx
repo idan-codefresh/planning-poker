@@ -114,7 +114,7 @@ export const TimerProgress: React.FC<TimerProps> = ({
   const [currentMinutesRunning, currentSecondsRunning] = getMinutesAndSeconds(current);
 
   return (
-    <div className='absolute top-13 right-2 shadow-xl rounded-lg bg-white p-4 w-[15rem] h-fit border-gray-200 border-1 dark:bg-gray-800 dark:border-gray-700 z-10'>
+    <div className='absolute bottom-full left-1/2 -translate-x-1/2 mb-2 shadow-xl rounded-lg bg-white p-4 w-[15rem] h-fit border border-gray-200 dark:bg-gray-800 dark:border-gray-700 z-50'>
       <button
         title={
           _soundOn

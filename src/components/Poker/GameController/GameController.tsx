@@ -102,28 +102,34 @@ export const GameController: React.FC<GameControllerProps> = ({
   return (
     <>
       {/* Fixed bottom bar */}
-      <div className='fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 shadow-lg'>
-        <div className='flex items-center justify-between px-4 h-12 gap-4'>
+      <div
+        className='fixed bottom-0 left-0 right-0 z-50'
+        style={{ background: 'var(--lin-surface)', borderTop: '1px solid var(--lin-border)' }}
+      >
+        <div className='flex items-center justify-between px-4 h-11 gap-4'>
           {/* Left: game name + status */}
           <div className='flex items-center gap-2 min-w-0 flex-shrink-0'>
-            <span className='font-semibold text-sm truncate max-w-[140px]'>{game.name}</span>
-            <span className='text-xs text-gray-500 hidden sm:inline'>
-              {getGameStatusIcon(game.gameStatus)} {game.gameStatus}
+            <span className='text-xs font-semibold truncate max-w-[140px]' style={{ color: 'var(--lin-text)' }}>
+              {game.name}
             </span>
+            <StatusPill status={game.gameStatus} />
             {average && (
-              <span className='ml-1 px-2 py-0.5 text-xs rounded-full bg-blue-100 dark:bg-blue-900 font-bold border border-gray-200 dark:border-gray-700'>
-                Avg {average}
+              <span
+                className='px-2 py-0.5 text-xs font-semibold rounded-md'
+                style={{ background: 'var(--lin-accent-subtle)', color: 'var(--lin-accent)' }}
+              >
+                avg {average}
               </span>
             )}
           </div>
 
           {/* Center: timer */}
-          <div className='flex items-center'>
+          <div className='relative flex items-center'>
             <Timer timerProps={timerProps} onTimerUpdate={onUpdatedTimerProps} />
           </div>
 
-          {/* Right: compact action buttons */}
-          <div className='flex items-center gap-1 flex-shrink-0'>
+          {/* Right: action buttons */}
+          <div className='flex items-center gap-0.5 flex-shrink-0'>
             {isMod && (
               <>
                 <AlertDialog
@@ -131,57 +137,48 @@ export const GameController: React.FC<GameControllerProps> = ({
                   message={t('GameController.areYouSureDelete')}
                   onConfirm={() => handleRemoveGame(game.id)}
                 >
-                  <button
-                    className='p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition'
-                    title={t('GameController.delete')}
-                  >
-                    <TrashSVG className='h-5 w-5 text-red-500' />
-                  </button>
+                  <BarButton title={t('GameController.delete')}>
+                    <TrashSVG className='h-4 w-4 text-red-500 dark:text-red-400' />
+                  </BarButton>
                 </AlertDialog>
-                <label className='flex items-center gap-1 cursor-pointer ml-1 mr-1' title='Auto Reveal'>
-                  <span className='text-xs text-gray-400 hidden sm:inline'>Auto</span>
+                <label className='flex items-center gap-1.5 cursor-pointer px-2' title='Auto Reveal'>
+                  <span className='text-[11px] font-medium' style={{ color: 'var(--lin-text-3)' }}>Auto</span>
                   <button
                     type='button'
                     role='switch'
                     aria-checked={game.autoReveal}
                     onClick={() => updateGame(game.id, { autoReveal: !game.autoReveal })}
-                    className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors focus:outline-none ${
-                      game.autoReveal ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'
-                    }`}
+                    className='relative inline-flex h-4 w-7 items-center rounded-full transition-colors focus:outline-none'
+                    style={{ background: game.autoReveal ? 'var(--lin-green)' : 'var(--lin-border-strong)' }}
                   >
                     <span
-                      className={`inline-block h-3 w-3 transform rounded-full bg-white shadow transition-transform ${
-                        game.autoReveal ? 'translate-x-3.5' : 'translate-x-0.5'
-                      }`}
+                      className='inline-block h-3 w-3 transform rounded-full bg-white shadow transition-transform'
+                      style={{ transform: game.autoReveal ? 'translateX(14px)' : 'translateX(2px)' }}
                     />
                   </button>
                 </label>
               </>
             )}
 
-            <div className='w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1' />
+            <div className='w-px h-4 mx-1' style={{ background: 'var(--lin-border-strong)' }} />
 
-            <BarButton onClick={leaveGame} title={t('GameController.exit')} className='hover:bg-orange-100 dark:hover:bg-orange-900/30'>
-              <ExitSVG className='h-5 w-5 text-orange-500' />
+            <BarButton onClick={leaveGame} title={t('GameController.exit')}>
+              <ExitSVG className='h-4 w-4 text-gray-500 dark:text-gray-400' />
             </BarButton>
-            <BarButton onClick={copyInviteLink} title={t('GameController.invite')} className='hover:bg-blue-100 dark:hover:bg-blue-900/30'>
-              <LinkSVG className='h-5 w-5 text-blue-500' />
+            <BarButton onClick={copyInviteLink} title={t('GameController.invite')}>
+              <LinkSVG className='h-4 w-4 text-gray-500 dark:text-gray-400' />
             </BarButton>
             {isMod && !hasLinearDetail && (
               <BarButton
                 onClick={onToggleLinearPicker}
                 title='Browse Linear issues'
-                className={`hover:bg-violet-100 dark:hover:bg-violet-900/30 ${showLinearPicker ? 'bg-violet-100 dark:bg-violet-900/30' : ''}`}
+                active={showLinearPicker}
               >
-                <LinearIcon className='h-5 w-5' />
+                <LinearIcon className={`h-4 w-4 ${showLinearPicker ? 'text-violet-500' : 'text-gray-500 dark:text-gray-400'}`} />
               </BarButton>
             )}
-            <BarButton
-              onClick={() => setShowEstimationGuide(true)}
-              title='Estimation guide'
-              className='hover:bg-gray-100 dark:hover:bg-gray-800'
-            >
-              <GuideIcon className='h-5 w-5 text-gray-500' />
+            <BarButton onClick={() => setShowEstimationGuide(true)} title='Estimation guide'>
+              <GuideIcon className='h-4 w-4 text-gray-500 dark:text-gray-400' />
             </BarButton>
           </div>
         </div>
@@ -190,8 +187,11 @@ export const GameController: React.FC<GameControllerProps> = ({
       {/* Modals */}
       {showEstimationGuide && <EstimationGuide onClose={() => setShowEstimationGuide(false)} />}
       {showCopiedMessage && (
-        <div className='fixed top-4 right-4 z-50 bg-green-100 border border-green-200 text-gray-800 px-4 py-2 text-xs rounded shadow'>
-          <span className='font-bold'>{t('GameController.inviteLinkCopied')}!</span>
+        <div
+          className='fixed top-4 right-4 z-50 px-4 py-2 text-xs rounded-lg shadow-lg'
+          style={{ background: 'var(--lin-surface)', border: '1px solid var(--lin-border-strong)', color: 'var(--lin-text)' }}
+        >
+          <span className='font-semibold'>{t('GameController.inviteLinkCopied')}!</span>
         </div>
       )}
     </>
@@ -203,18 +203,38 @@ export const GameController: React.FC<GameControllerProps> = ({
 const BarButton: React.FC<{
   onClick?: () => void;
   title?: string;
-  className?: string;
+  active?: boolean;
   children: React.ReactNode;
-}> = ({ onClick, title, className, children }) => (
+}> = ({ onClick, title, active, children }) => (
   <button
     type='button'
     onClick={onClick}
     title={title}
-    className={`p-1.5 rounded-lg transition ${className ?? ''}`}
+    className='p-1.5 rounded-md transition'
+    style={{ background: active ? 'var(--lin-accent-subtle)' : 'transparent' }}
+    onMouseEnter={(e) => { if (!active) e.currentTarget.style.background = 'var(--lin-elevated)'; }}
+    onMouseLeave={(e) => { e.currentTarget.style.background = active ? 'var(--lin-accent-subtle)' : 'transparent'; }}
   >
     {children}
   </button>
 );
+
+// ── Status pill ────────────────────────────────────────────────────────────────
+
+const StatusPill: React.FC<{ status: string }> = ({ status }) => {
+  const cfg: Record<string, { dot: string; label: string }> = {
+    'In Progress': { dot: 'var(--lin-accent)',  label: 'In Progress' },
+    'Finished':    { dot: 'var(--lin-green)',   label: 'Finished' },
+    'Started':     { dot: 'var(--lin-text-3)',  label: 'Started' },
+  };
+  const c = cfg[status] ?? { dot: 'var(--lin-text-3)', label: status };
+  return (
+    <span className='hidden sm:flex items-center gap-1.5'>
+      <span className='h-1.5 w-1.5 rounded-full' style={{ background: c.dot }} />
+      <span className='text-[11px]' style={{ color: 'var(--lin-text-3)' }}>{c.label}</span>
+    </span>
+  );
+};
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
