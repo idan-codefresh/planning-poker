@@ -1,0 +1,27 @@
+src/components/Poker/Poker.tsx
+  cfa1e7f4491c0051 3,39-40
+src/repository/firebase.ts
+  cfa1e7f4491c0051 3,23-32
+src/repository/localStorage.ts
+  cfa1e7f4491c0051 30-31,33,37,41
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "36bf0a5637bd7d30441b8d97cfac825d2d8c8048",
+  "prompts": {
+    "cfa1e7f4491c0051": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b25c81d7-7784-4363-8451-04a6114330bc",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Idan Arbel",
+      "messages": [],
+      "total_additions": 41,
+      "total_deletions": 14,
+      "accepted_lines": 41,
+      "overriden_lines": 0
+    }
+  }
+}
