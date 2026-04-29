@@ -1,7 +1,6 @@
 import { polyfillCountryFlagEmojis } from 'country-flag-emoji-polyfill';
 import { Suspense } from 'react';
 import { Route, BrowserRouter as Router, Switch } from 'react-router-dom';
-import { AuthGate } from './components/AuthGate/AuthGate';
 import { Loading } from './components/Loading/Loading';
 import { Toolbar } from './components/Toolbar/Toolbar';
 import { AboutPage } from './pages/AboutPage/AboutPage';
@@ -16,7 +15,6 @@ polyfillCountryFlagEmojis();
 
 function App() {
   return (
-    <AuthGate>
     <div className='min-h-screen' style={{ background: 'var(--lin-bg)', color: 'var(--lin-text)' }}>
       <Suspense
         fallback={
@@ -39,7 +37,6 @@ function App() {
         </Router>
       </Suspense>
     </div>
-    </AuthGate>
   );
 }
 

@@ -3,7 +3,6 @@ import { GamesSVG } from '../SVGs/GamesSVG';
 
 import { useEffect, useRef, useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import { signOut } from '../../repository/firebase';
 import { useBreakpoint } from '../../hooks/useBreakpoint';
 import { LanguageControl } from '../LanguageControl/LanguageControl';
 import { GithubSVG } from '../SVGs/Github';
@@ -95,8 +94,6 @@ export const Toolbar = () => {
             <div className='w-px h-4 mx-1' style={{ background: 'var(--lin-border-strong)' }} />
             <ThemeControl />
             <LanguageControl />
-            <div className='w-px h-4 mx-1' style={{ background: 'var(--lin-border-strong)' }} />
-            <NavButton onClick={signOut}>Sign out</NavButton>
           </>
         )}
       </div>
