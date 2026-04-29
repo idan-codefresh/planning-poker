@@ -1,0 +1,21 @@
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "0d5e710c5ef788f19e7b94b3dc5730d7290849d7",
+  "prompts": {
+    "cfa1e7f4491c0051": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b25c81d7-7784-4363-8451-04a6114330bc",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Idan Arbel",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 6,
+      "accepted_lines": 0,
+      "overriden_lines": 0
+    }
+  }
+}
